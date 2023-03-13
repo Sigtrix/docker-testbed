@@ -1,0 +1,58 @@
+{
+    "nodes": [
+        {
+            "name": "node1",
+            "image": "alpine",
+            "network": "net1",
+            "links": [
+                {
+                    "name": "node2",
+                    "direction": "out"
+                },
+                {
+                    "name": "node3",
+                    "direction": "out"
+                }
+            ]
+        },
+        {
+            "name": "node2",
+            "image": "alpine",
+            "network": "net2",
+            "links": [
+                {
+                    "name": "node4",
+                    "direction": "out"
+                }
+            ]
+        },
+        {
+            "name": "node3",
+            "image": "alpine",
+            "network": "net3",
+            "links": [
+                {
+                    "name": "node4",
+                    "direction": "out"
+                }
+            ]
+        },
+        {
+            "name": "node4",
+            "image": "alpine",
+            "network": "net4",
+            "links": [
+                {
+                    "name": "node5",
+                    "direction": "out"
+                }
+            ]
+        },
+        {
+            "name": "node5",
+            "image": "alpine",
+            "network": "net5",
+            "links": []
+        }
+    ]
+}
