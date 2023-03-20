@@ -43,10 +43,25 @@ docker run -d --name c1 --network c1-r1 --ip 10.0.1.4 --privileged client-image
 docker run -d --name s1 --network r2-s1 --ip 10.0.3.4 --privileged server-image
 
 # configure routing tables
-docker exec c1 ip route add 10.0.3.0/24 via 10.0.1.2 dev eth0
-docker exec r1 ip route add 10.0.3.0/24 via 10.0.2.3 dev eth1
-docker exec r2 ip route add 10.0.1.0/24 via 10.0.2.2 dev eth1
-docker exec r2 ip route change 10.0.3.0/24 via 10.0.3.4 dev eth0
-docker exec s1 ip route add 10.0.1.0/24 via 10.0.3.2 dev eth0
+docker exec c1 ip route add 10.0.3.4 via 10.0.1.2 dev eth0
+docker exec c1 ip route add 10.0.1.2 via 10.0.1.2 dev eth0
+docker exec c1 ip route add 10.0.3.2 via 10.0.1.2 dev eth0
+#docker exec c1 ip route add 10.0.3.0/24 via 10.0.1.2 dev eth0
+
+# docker exec r1 ip route add 10.0.3.0/24 via 10.0.2.3 dev eth1
+docker exec r1 ip route add 10.0.1.4 via 10.0.1.4 dev eth0
+docker exec r1 ip route add 10.0.3.2 via 10.0.2.3 dev eth1
+docker exec r1 ip route add 10.0.3.4 via 10.0.2.3 dev eth1
+
+# docker exec r2 ip route add 10.0.1.0/24 via 10.0.2.2 dev eth1
+docker exec r2 ip route add 10.0.1.4 via 10.0.2.2 dev eth1
+docker exec r2 ip route add 10.0.1.2 via 10.0.2.2 dev eth1
+docker exec r2 ip route add 10.0.3.4 via 10.0.3.4 dev eth0
+# docker exec r2 ip route change 10.0.3.0/24 via 10.0.3.4 dev eth0
+
+# docker exec s1 ip route add 10.0.1.0/24 via 10.0.3.2 dev eth0
+docker exec s1 ip route add 10.0.1.4 via 10.0.3.2 dev eth0
+docker exec s1 ip route add 10.0.3.2 via 10.0.3.2 dev eth0
+docker exec s1 ip route add 10.0.1.2 via 10.0.3.2 dev eth0
 
 docker ps
