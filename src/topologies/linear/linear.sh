@@ -36,6 +36,8 @@ docker network create --subnet=10.0.3.0/24 r2-s1
 
 # attach containers to networks
 docker run -d --name r1 --network c1-r1 --ip 10.0.1.2 --privileged router-image
+# docker run -d --name r1 --privileged router-image
+# docker network connect --ip 10.0.1.2 c1-r1 r1
 docker network connect --ip 10.0.2.2 r1-r2 r1
 docker run -d --name r2 --network r2-s1 --ip 10.0.3.2 --privileged router-image
 docker network connect --ip 10.0.2.3 r1-r2 r2
