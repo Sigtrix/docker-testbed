@@ -94,6 +94,20 @@ def add_route(container_name, ip_range, gateway_ip, interface):
 	os.system(cmd)
 
 
+def configure_link(node, interface, tc_params):
+	"""
+	Configure interface on node
+	:param node: node to configure
+	:param interface: interface to configure
+	:param tc_params: tuple (bandwidth, burst, latency)
+	:return: None
+	"""
+	bandwidth, burst, latency = tc_params
+	cmd = f"docker exec {node} tc qdisc add dev {interface} " \
+	      f"root tbf rate {bandwidth}mbit burst {burst}kb latency {latency}ms"
+	os.system(cmd)
+
+
 node_vs_ip = {}
 # build router, client and server images
 for node_name, node_param in nodes.items():
@@ -118,15 +132,12 @@ for link_name, link_param in links.items():
 	except Exception as e:
 		print(e)
 
-# TODO: configure bandwidth of links
-
-# TODO: Use Dijkstra to configure routing tables with add route function above
 graph = {}
 connections = {}
 # Create Graph
 for link_name, link_param in links.items():
 	endpoints = link_param[1]
-	band_width = link_param[2]
+	band_width = link_param[2][0]
 	if endpoints[0][0] not in graph:
 		graph[endpoints[0][0]] = []
 		connections[endpoints[0][0]] = {}
@@ -159,4 +170,13 @@ for start_node in graph:
 		interface = connections[start_node][next_hop_node][1]
 		add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 		print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
+
+# Configure bandwidth
+for link_name, link_param in links.items():
+	endpoint0 = link_param[1][0]
+	endpoint1 = link_param[1][1]
+	tc_params = link_param[2]
+	configure_link(endpoint0[0], endpoint0[2], tc_params)
+	configure_link(endpoint1[0], endpoint1[2], tc_params)
+
 
