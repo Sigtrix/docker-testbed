@@ -96,14 +96,19 @@ def add_route(container_name, ip_range, gateway_ip, interface):
 	"""
 	cmd = f"docker exec {container_name} ip route add {ip_range}" \
 	      f" via {gateway_ip} dev {interface}"
-	print(cmd)
-	os.system(cmd)
+	cmdValue = os.system(cmd)
+	if cmdValue!=0:
+		cmd = f"docker exec {container_name} ip route change {ip_range}" \
+	      f" via {gateway_ip} dev {interface}"
+		os.system(cmd)
 
 
 if __name__ == "__main__":
 	node_vs_ip = {}
 	for node_name, node_param in nodes.items():
-		node_vs_ip[node_name] = node_param[0]
+		if node_name not in node_vs_ip:
+			node_vs_ip[node_name] = []
+		node_vs_ip[node_name].append(node_param[0])
 	# python3 setup.py add_link '"r2-s1": ("10.0.3.0/24", (("r2", "10.0.3.2", "eth0"), ("s1", "10.0.3.4", "eth0")), 10)'
 	if len(sys.argv) == 3:
 		print(sys.argv[1])
@@ -115,8 +120,8 @@ if __name__ == "__main__":
 			link_param = ast.literal_eval(link_param_str)
 			links[link_name] = link_param
 			create_subnet(link_param[0], link_name)
-			for node_name, node_param in nodes.items():
-				create_container(node_name, node_param[1][0], node_param[2], node_param[0])
+			# for node_name, node_param in nodes.items():
+			# 	create_container(node_name, node_param[1][0], node_param[2], node_param[0])
 			endpoints = link_param[1]
 			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
 			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
@@ -154,6 +159,14 @@ if __name__ == "__main__":
 	for link_name, link_param in links.items():
 		endpoints = link_param[1]
 		band_width = link_param[2]
+
+		if endpoints[0][0] not in node_vs_ip:
+			node_vs_ip[endpoints[0][0]] = []
+		node_vs_ip[endpoints[0][0]].append(endpoints[0][1])
+		if endpoints[1][0] not in node_vs_ip:
+			node_vs_ip[endpoints[1][0]] = []
+		node_vs_ip[endpoints[1][0]].append(endpoints[1][1])
+
 		if endpoints[0][0] not in graph:
 			graph[endpoints[0][0]] = []
 			connections[endpoints[0][0]] = {}
@@ -181,9 +194,9 @@ if __name__ == "__main__":
 			hops.append((node,next_hop))
 		print(f"\nStart Node = {start_node}")
 		for dest_node, next_hop_node in hops:
-			dest_node_ip = node_vs_ip[dest_node]
 			next_hop_node_ip = connections[start_node][next_hop_node][0]
 			interface = connections[start_node][next_hop_node][1]
-			add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
+			for dest_node_ip in node_vs_ip[dest_node]:
+				add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 			print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
 
