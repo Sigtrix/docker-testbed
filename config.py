@@ -30,4 +30,3 @@ links = {"c1-r1": ("10.0.1.0/24", (("c1", "10.0.1.4", "eth0"), ("r1", "10.0.1.2"
 """
 attach containers in the order of the links
 """
-
