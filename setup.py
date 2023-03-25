@@ -1,8 +1,10 @@
 import os
 import sys
 import ast
-from config import nodes, links
+# from config import nodes, links
+import config
 from queue import PriorityQueue
+import json
 
 def dijkstra(graph, start):
     """Function to compute the shortest path from a source node to all other nodes in the graph"""
@@ -41,7 +43,6 @@ def build_image(img_name, img_path):
 	print(cmd)
 	os.system(cmd)
 
-
 def create_container(container_name, img_name, network, ip):
 	"""
 	Create and start container
@@ -59,7 +60,6 @@ def create_container(container_name, img_name, network, ip):
 	print(cmd)
 	os.system(cmd)
 
-
 def create_subnet(ip_range, subnet_name):
 	"""
 	Create subnet
@@ -71,6 +71,15 @@ def create_subnet(ip_range, subnet_name):
 	print(cmd)
 	os.system(cmd)
 
+def remove_subnet(subnet_name):
+	"""
+	Remove subnet
+	:param subnet_name: name of subnet
+	:return: None
+	"""
+	cmd = f"docker network rm {subnet_name}"
+	print(cmd)
+	os.system(cmd)
 
 def attach(ip, subnet_name, container_name, interface):
 	"""
@@ -84,6 +93,16 @@ def attach(ip, subnet_name, container_name, interface):
 		print(cmd)
 		os.system(cmd)
 
+def detach(subnet_name, container_name):
+	"""
+	Detach container from a subnet
+	:param subnet_name: name of subnet
+	:param container_name: name of container
+	:return: None
+	"""
+	cmd = f"docker network disconnect {subnet_name} {container_name}"
+	print(cmd)
+	os.system(cmd)
 
 def add_route(container_name, ip_range, gateway_ip, interface):
 	"""
@@ -102,30 +121,79 @@ def add_route(container_name, ip_range, gateway_ip, interface):
 	      f" via {gateway_ip} dev {interface}"
 		os.system(cmd)
 
+def del_route(container_name, ip_range):
+	"""
+	Deleting routing rule corresponding to a link
+	:param container_name: name of src container
+	:param ip_range: destination node ip address
+	:return: None
+	"""
+	cmd = f"docker exec {container_name} ip route delete {ip_range}"
+	os.system(cmd)
+
+def write_state_json(nodes, links, node_vs_ip):
+	with open("state.json", "w") as f:
+		json.dump({"nodes": nodes, "links": links, "node_vs_ip": node_vs_ip}, f, indent=4)
+
+def read_state_json():
+	with open("state.json", "r") as f:
+		current_state = json.load(f)
+	return current_state
 
 if __name__ == "__main__":
 	node_vs_ip = {}
-	for node_name, node_param in nodes.items():
+	for node_name, node_param in config.nodes.items():
 		if node_name not in node_vs_ip:
 			node_vs_ip[node_name] = []
 		node_vs_ip[node_name].append(node_param[0])
 	# python3 setup.py add_link '"r1-s1": ("10.0.4.0/24", (("r1", "10.0.4.2", "eth2"), ("s1", "10.0.4.4", "eth1")), 10)'
+	# python3 setup.py remove_link '"r1-s1": ("10.0.4.0/24", (("r1", "10.0.4.2", "eth2"), ("s1", "10.0.4.4", "eth1")), 10)'
 	if len(sys.argv) == 3:
 		print(sys.argv[1])
 		print(sys.argv[2])
 		if(str(sys.argv[1])=="add_link"):
 			link = sys.argv[2].split(":")
 			link_name = ast.literal_eval(link[0])
-			link_param_str = link[1]
-			link_param = ast.literal_eval(link_param_str)
-			links[link_name] = link_param
+			link_param = ast.literal_eval(link[1])
+			current_state = read_state_json()
+			current_state["links"][link_name] = link_param
+			links = current_state["links"]
+			nodes = current_state["nodes"]
 			create_subnet(link_param[0], link_name)
 			endpoints = link_param[1]
 			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
 			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
+		elif(str(sys.argv[1])=="remove_link"):
+			link = sys.argv[2].split(":")
+			link_name = ast.literal_eval(link[0])
+			link_param = ast.literal_eval(link[1])
+			endpoints = link_param[1]
+			current_state = read_state_json()
+			if link_name in current_state["links"]:
+				start_node = endpoints[0][0]
+				dest_node = endpoints[1][0]
+				# deleting direct connections due to this link in routing tables
+				for dest_node_ip in current_state["node_vs_ip"][dest_node]:
+					del_route(start_node, dest_node_ip)
+				# because bidirectional
+				for start_node_ip in current_state["node_vs_ip"][start_node]:
+					del_route(dest_node, start_node_ip)
+				# deleting from links data structure
+				del current_state["links"][link_name]
+			else:
+				print("Link being deleted not present.")
+				exit()
+			links = current_state["links"]
+			nodes = current_state["nodes"]
+			detach(link_name, endpoints[0][0])
+			detach(link_name, endpoints[1][0])
+			remove_subnet(link_name) # remove subnet after detaching containers or containers will get killed.
 		else:
 			print("Invalid Argument")
 	else:
+		# Use config nodes and links
+		links = config.links
+		nodes = config.nodes
 		# build router, client and server images
 		for node_name, node_param in nodes.items():
 			image = node_param[1]
@@ -196,4 +264,5 @@ if __name__ == "__main__":
 			for dest_node_ip in node_vs_ip[dest_node]:
 				add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 			print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
-
+	
+	write_state_json(nodes, links, node_vs_ip)
