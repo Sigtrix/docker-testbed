@@ -31,58 +31,53 @@ def dijkstra(graph, start):
     return dist
 
 def build_image(img_name, img_path):
-	"""
-	Build docker image
-	:param img_name: name of image
-	:param img_path: path of Dockerfile
-	:return: None
-	"""
-	cmd = f"docker build -t {img_name} {img_path}"
-	print(cmd)
-	os.system(cmd)
+    """
+    Build docker image
+    :param img_name: name of image
+    :param img_path: path of Dockerfile
+    :return: None
+    """
+    cmd = f"docker build -t {img_name} {img_path}"
+    print(cmd)
+    os.system(cmd)
 
 
-def create_container(container_name, img_name, network, ip):
-	"""
-	Create and start container
-	:param container_name: name of container
-	:param ip: container ip address
-	:param img_name: name of image
-	:param network: network name on eth0 interface
-	:param ip: ip address of node on <network>
-	:return: None
-	"""
-	cmd = f"docker run -d --name {container_name}" \
-	      f" --network {network}" \
-	      f" --ip {ip}" \
-	      f" --privileged {img_name}"
-	print(cmd)
-	os.system(cmd)
+def create_container(container_name, img_name):
+    """
+    Create and start container
+    :param container_name: name of container
+    :param ip: container ip address
+    :param img_name: name of image
+    :return: None
+    """
+    cmd = f"docker run -d --name {container_name}" \
+          f" --privileged {img_name}"
+    print(cmd)
+    os.system(cmd)
 
 
 def create_subnet(ip_range, subnet_name):
-	"""
-	Create subnet
-	:param ip_range: range of ips on subnet
-	:param subnet_name: name of subnet
-	:return: None
-	"""
-	cmd = f"docker network create --subnet={ip_range} {subnet_name}"
-	print(cmd)
-	os.system(cmd)
+    """
+    Create subnet
+    :param ip_range: range of ips on subnet
+    :param subnet_name: name of subnet
+    :return: None
+    """
+    cmd = f"docker network create --subnet={ip_range} {subnet_name}"
+    print(cmd)
+    os.system(cmd)
 
 
-def attach(ip, subnet_name, container_name, interface):
-	"""
-	Attach container to subnet
-	:param subnet_name: name of subnet
-	:param container_name: name of container
-	:return: None
-	"""
-	if interface != "eth0":
-		cmd = f"docker network connect --ip {ip} {subnet_name} {container_name}"
-		print(cmd)
-		os.system(cmd)
+def attach(ip, subnet_name, container_name):
+    """
+    Attach container to subnet
+    :param subnet_name: name of subnet
+    :param container_name: name of container
+    :return: None
+    """
+    cmd = f"docker network connect --ip {ip} {subnet_name} {container_name}"
+    print(cmd)
+    os.system(cmd)
 
 
 def add_route(container_name, ip_range, gateway_ip, interface):
@@ -199,4 +194,3 @@ if __name__ == "__main__":
 			for dest_node_ip in node_vs_ip[dest_node]:
 				add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 			print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
-
