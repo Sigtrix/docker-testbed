@@ -4,10 +4,10 @@ linear_dir = os.path.join("src", "topologies", "linear")
 
 
 #TODO: Remove "c1-r1" parameter
-nodes = {"c1": ("10.0.1.4", ("client-image", os.path.join(linear_dir, "c1"))),
-         "r1": ("10.0.1.2", ("router-image", os.path.join(linear_dir, "r"))),
-         "r2": ("10.0.3.2", ("router-image", os.path.join(linear_dir, "r"))),
-         "s1": ("10.0.3.4", ("server-image", os.path.join(linear_dir, "s1")))}
+nodes = {"c1": ("10.0.1.4", ("client-image", os.path.join(linear_dir, "c1")), "c1-r1"),
+         "r1": ("10.0.1.2", ("router-image", os.path.join(linear_dir, "r")), "c1-r1"),
+         "r2": ("10.0.3.2", ("router-image", os.path.join(linear_dir, "r")), "r2-s1"),
+         "s1": ("10.0.3.4", ("server-image", os.path.join(linear_dir, "s1")), "r2-s1")}
 """
 {node_name: (ip_addr, (image_name, image_path), eth0_network), ...}
 """
@@ -30,4 +30,3 @@ links = {"c1-r1": ("10.0.1.0/24", (("c1", "10.0.1.4", "eth0"), ("r1", "10.0.1.2"
 """
 attach containers in the order of the links
 """
-
