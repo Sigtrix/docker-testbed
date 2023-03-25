@@ -104,7 +104,7 @@ if __name__ == "__main__":
 		if node_name not in node_vs_ip:
 			node_vs_ip[node_name] = []
 		node_vs_ip[node_name].append(node_param[0])
-	# python3 setup.py add_link '"r2-s1": ("10.0.3.0/24", (("r2", "10.0.3.2", "eth0"), ("s1", "10.0.3.4", "eth0")), 10)'
+	# python3 setup.py add_link '"r1-s1": ("10.0.4.0/24", (("r1", "10.0.4.2", "eth2"), ("s1", "10.0.4.4", "eth1")), 10)'
 	if len(sys.argv) == 3:
 		print(sys.argv[1])
 		print(sys.argv[2])
