@@ -1,6 +1,6 @@
-all: clear setup run test
+all: clean setup run test
 
-clear:
+clean:
 	for node in $$(jq -r '.nodes | keys[]' state.json); do \
         docker rm -f $${node} ; \
     done
@@ -15,4 +15,3 @@ run:
 
 test:
 	docker exec -it c1 traceroute 10.0.3.2
-	docker exec -it c1 ip route

@@ -1,7 +1,6 @@
 import os
 import sys
 import ast
-# from config import nodes, links
 import config
 from queue import PriorityQueue
 import json
@@ -131,31 +130,47 @@ def del_route(container_name, ip_range):
 	cmd = f"docker exec {container_name} ip route delete {ip_range}"
 	os.system(cmd)
 
-def write_state_json(nodes, links, node_vs_ip):
+def write_state_json(nodes, links, node_vs_ip, node_vs_eth):
 	with open("state.json", "w") as f:
-		json.dump({"nodes": nodes, "links": links, "node_vs_ip": node_vs_ip}, f, indent=4)
+		json.dump({"nodes": nodes, "links": links, "node_vs_ip": node_vs_ip, "node_vs_eth": node_vs_eth}, f, indent=4)
 
 def read_state_json():
 	with open("state.json", "r") as f:
 		current_state = json.load(f)
 	return current_state
 
+def generate_link_param(node_vs_eth, link_info):
+	node0 = link_info[0]
+	node1 = link_info[1]
+	link_name = node0[0] + "-" +node1[0]
+	subnet_ip = ".".join(node0[1].split(".")[:3]) + ".0/24"
+	if node0[0] not in node_vs_eth:
+		node_vs_eth[node0[0]] = 0
+	else:
+		node_vs_eth[node0[0]] += 1
+	if node1[0] not in node_vs_eth:
+		node_vs_eth[node1[0]] = 0
+	else:
+		node_vs_eth[node1[0]] += 1
+	link_param = (subnet_ip,((node0[0],node0[1],"eth"+str(node_vs_eth[node0[0]])), \
+			(node1[0],node1[1],"eth"+str(node_vs_eth[node1[0]]))), link_info[2])
+	return link_name, node_vs_eth, link_param
+
 if __name__ == "__main__":
 	node_vs_ip = {}
+	node_vs_eth = {}
 	for node_name, node_param in config.nodes.items():
 		if node_name not in node_vs_ip:
 			node_vs_ip[node_name] = []
 		node_vs_ip[node_name].append(node_param[0])
-	# python3 setup.py add_link '"r1-s1": ("10.0.4.0/24", (("r1", "10.0.4.2", "eth2"), ("s1", "10.0.4.4", "eth1")), 10)'
-	# python3 setup.py remove_link '"r1-s1": ("10.0.4.0/24", (("r1", "10.0.4.2", "eth2"), ("s1", "10.0.4.4", "eth1")), 10)'
 	if len(sys.argv) == 3:
 		print(sys.argv[1])
 		print(sys.argv[2])
 		if(str(sys.argv[1])=="add_link"):
-			link = sys.argv[2].split(":")
-			link_name = ast.literal_eval(link[0])
-			link_param = ast.literal_eval(link[1])
 			current_state = read_state_json()
+			node_vs_eth = current_state["node_vs_eth"]
+			link_info = ast.literal_eval(sys.argv[2])
+			link_name, node_vs_eth, link_param = generate_link_param(node_vs_eth, link_info)
 			current_state["links"][link_name] = link_param
 			links = current_state["links"]
 			nodes = current_state["nodes"]
@@ -164,11 +179,12 @@ if __name__ == "__main__":
 			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
 			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
 		elif(str(sys.argv[1])=="remove_link"):
-			link = sys.argv[2].split(":")
-			link_name = ast.literal_eval(link[0])
-			link_param = ast.literal_eval(link[1])
-			endpoints = link_param[1]
 			current_state = read_state_json()
+			node_vs_eth_not_used = {}
+			link_info = ast.literal_eval(sys.argv[2])
+			link_name, node_vs_eth_not_used, link_param = generate_link_param(node_vs_eth_not_used, link_info)
+			node_vs_eth = current_state["node_vs_eth"]
+			endpoints = link_param[1]
 			if link_name in current_state["links"]:
 				start_node = endpoints[0][0]
 				dest_node = endpoints[1][0]
@@ -191,8 +207,12 @@ if __name__ == "__main__":
 		else:
 			print("Invalid Argument")
 	else:
-		# Use config nodes and links
-		links = config.links
+		# update links to include interface and link_name
+		links = {}
+		for link_info in config.links:
+			link_name, node_vs_eth, link_param = generate_link_param(node_vs_eth, link_info)
+			links[link_name] = link_param
+		# links = config.links
 		nodes = config.nodes
 		# build router, client and server images
 		for node_name, node_param in nodes.items():
@@ -265,4 +285,4 @@ if __name__ == "__main__":
 				add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 			print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
 	
-	write_state_json(nodes, links, node_vs_ip)
+	write_state_json(nodes, links, node_vs_ip, node_vs_eth)
