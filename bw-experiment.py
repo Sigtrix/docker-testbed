@@ -31,7 +31,7 @@ def configure_bandwidth(params):
 
 
 # setup iperf server on s1
-#os.system(f"docker exec {server['name']} iperf -s")
+os.system(f"docker exec {server['name']} iperf -s")
 
 # setup iperf client on c1 and collect results
 result = subprocess.run(['docker', 'exec', client, 'iperf', '-c', server['ip']], stdout=subprocess.PIPE)
