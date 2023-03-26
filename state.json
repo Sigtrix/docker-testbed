@@ -2,34 +2,18 @@
     "nodes": {
         "c1": [
             "10.0.1.4",
-            [
-                "client-image",
-                "src/topologies/linear/c1"
-            ],
             "c1-r1"
         ],
         "r1": [
             "10.0.1.2",
-            [
-                "router-image",
-                "src/topologies/linear/r"
-            ],
             "c1-r1"
         ],
         "r2": [
             "10.0.3.2",
-            [
-                "router-image",
-                "src/topologies/linear/r"
-            ],
             "r2-s1"
         ],
         "s1": [
             "10.0.3.4",
-            [
-                "server-image",
-                "src/topologies/linear/s1"
-            ],
             "r2-s1"
         ]
     },

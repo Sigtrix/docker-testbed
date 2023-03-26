@@ -214,10 +214,8 @@ if __name__ == "__main__":
 			links[link_name] = link_param
 		# links = config.links
 		nodes = config.nodes
-		# build router, client and server images
-		for node_name, node_param in nodes.items():
-			image = node_param[1]
-			build_image(image[0], image[1])
+		# build image for node
+		build_image("node-image", ".")
 
 		# create subnets
 		for link_name, link_param in links.items():
@@ -225,7 +223,7 @@ if __name__ == "__main__":
 
 		# create containers
 		for node_name, node_param in nodes.items():
-			create_container(node_name, node_param[1][0], node_param[2], node_param[0])
+			create_container(node_name, "node-image", node_param[1], node_param[0])
 
 		# attach containers to networks
 		for link_name, link_param in links.items():
