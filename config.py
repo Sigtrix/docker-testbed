@@ -17,7 +17,7 @@ links = {"c1-r1": ("10.0.1.0/24", (("c1", "10.0.1.4", "eth0"), ("r1", "10.0.1.2"
          "r2-s1": ("10.0.3.0/24", (("r2", "10.0.3.2", "eth0"), ("s1", "10.0.3.4", "eth0")), (1, 2, 10))}
 """
 {subnet_name: (ip_range, ((endpoint_name1, ip1, interface), (endpoint_name2, ip2, interface)),
-(rate [mbit/s], burst [kb], latency [ms]))), ...}
+(rate [mbit/s], burst [b], latency [ms]))), ...}
 """
 
 """

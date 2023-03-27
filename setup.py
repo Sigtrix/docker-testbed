@@ -115,13 +115,17 @@ def configure_link(node, interface, tc_params):
 	:return: None
 	"""
 	bandwidth, burst, latency = tc_params
-	cmd = f"docker exec {node} tc qdisc add dev {interface} " \
-	      f"root tbf rate {bandwidth}mbit burst {burst}kb latency {latency}ms"
-	cmd_value = os.system(cmd)
-	if cmd_value != 0:
+	cmd_bandwidth = f"docker exec {node} tc qdisc add dev {interface} " \
+	      f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency {latency}ms"
+	cmd_latency = f"docker exec {node} tc qdisc add dev {interface} " \
+	              f"parent 1:1 handle 10: netem delay {latency}ms"
+	cmd_value_bandwidth = os.system(cmd_bandwidth)
+	cmd_value_latency = os.system(cmd_latency)
+	if cmd_value_bandwidth != 0 or cmd_value_latency != 0:
 		clear_cmd = f"docker exec {node} tc qdisc del dev {interface} root"
 		os.system(clear_cmd)
-		os.system(cmd)
+		os.system(cmd_bandwidth)
+		os.system(cmd_latency)
 
 
 if __name__ == "__main__":
