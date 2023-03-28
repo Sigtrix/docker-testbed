@@ -7,7 +7,13 @@ import json
 
 
 def dijkstra(graph, start):
-	"""Function to compute the shortest path from a source node to all other nodes in the graph"""
+	"""
+	Function to compute the shortest path from a source node to all other nodes in the graph
+	param: graph: the graph of the network
+	param: start: the source/start node from where minimum distance to other nodes is calculated.
+	return: Distance dictionary, where each element is a tuple of distance from source node and 
+	the previous node in the shortest path from the source.
+	"""
 	# Initialize the distance dictionary and set the distance of the start node to 0
 	dist = {}
 	for node in graph:
@@ -141,17 +147,39 @@ def del_route(container_name, ip_range):
 
 
 def write_state_json(nodes, links, node_vs_ip, node_vs_eth):
+	"""
+	Reads from the current state (consisting of all the input parameters of this function)
+	and stores it in the state.json file
+	:param nodes: node information in the format as defined in json file.
+	:param links: link information in the format as defined in json file.
+	:param node_vs_ip: list of ips associated with the nodes
+	:param: node_vs_eth: the highest ethernet interface number used.
+	:return: the current state of the graph in dictionary format
+	"""
 	with open("state.json", "w") as f:
 		json.dump({"nodes": nodes, "links": links, "node_vs_ip": node_vs_ip, "node_vs_eth": node_vs_eth}, f, indent=4)
 
 
 def read_state_json():
+	"""
+	Read the state json file which stores the current state.
+	:param: None
+	:return: the current state of the graph in dictionary format
+	"""
 	with open("state.json", "r") as f:
 		current_state = json.load(f)
 	return current_state
 
 
 def generate_link_param(node_vs_eth, link_info):
+	"""
+	Generates more parameters from the limited set of info taken form config file.
+	:param node_vs_eth: contains the node vs ethernet number mapping to decide the next
+	ethernet available to use for the link.
+	:param link_info: contains the info provided for the link in the config file or add
+	and delete link commands.
+	:return: link_name, node_vs_eth, link_param
+	"""
 	node0 = link_info[0]
 	node1 = link_info[1]
 	link_name = node0[0] + "-" + node1[0]
@@ -179,6 +207,7 @@ if __name__ == "__main__":
 	if len(sys.argv) == 3:
 		print(sys.argv[1])
 		print(sys.argv[2])
+		# Handling add_link functionality
 		if (str(sys.argv[1]) == "add_link"):
 			current_state = read_state_json()
 			node_vs_eth = current_state["node_vs_eth"]
@@ -191,6 +220,7 @@ if __name__ == "__main__":
 			endpoints = link_param[1]
 			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
 			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
+		# Handling remove_link functionality
 		elif (str(sys.argv[1]) == "remove_link"):
 			current_state = read_state_json()
 			node_vs_eth_not_used = {}
@@ -219,13 +249,13 @@ if __name__ == "__main__":
 			remove_subnet(link_name)  # remove subnet after detaching containers or containers will get killed.
 		else:
 			print("Invalid Argument")
+	# Reading and storing information from the config.py file
 	else:
 		# update links to include interface and link_name
 		links = {}
 		for link_info in config.links:
 			link_name, node_vs_eth, link_param = generate_link_param(node_vs_eth, link_info)
 			links[link_name] = link_param
-		# links = config.links
 		nodes = config.nodes
 		# build image for node
 		build_image("node-image", ".")
@@ -248,6 +278,7 @@ if __name__ == "__main__":
 				print(e)
 
 	# TODO: configure bandwidth of links
+
 	# Using Dijkstra to configure routing tables with add route function above
 	graph = {}
 	connections = {}
@@ -297,4 +328,5 @@ if __name__ == "__main__":
 				add_route(start_node, dest_node_ip, next_hop_node_ip, interface)
 			print(f"Destination Node = {dest_node}, Next hop = {next_hop_node}")
 
+	# Store the current state to state.json file
 	write_state_json(nodes, links, node_vs_ip, node_vs_eth)
