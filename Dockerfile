@@ -8,7 +8,17 @@ RUN apt-get update && \
     traceroute \
     iperf \
     vim \
+     wget \
+    make \
+    gcc \
+    build-essential \
     python3
+
+# Install Pathneck
+RUN wget http://www.cs.cmu.edu/~hnn/pathneck/pathneck-1.3.tgz && \
+    tar -xf pathneck-1.3.tgz && \
+    cd pathneck-1.3 && \
+    make
 
 # Start a shell and keep the container running
 CMD ["tail", "-f", "/dev/null"]
