@@ -30,7 +30,8 @@ def dijkstra(graph, start):
 		if current_dist > dist[current_node][0]:
 			continue
 		for neighbor, weight in graph[current_node]:
-			distance = current_dist + weight
+			# weights are bandwidth values
+			distance = current_dist + weight[0]
 			if distance < dist[neighbor][0]:
 				dist[neighbor] = [distance, current_node]
 				pq.put([distance, neighbor])
@@ -92,17 +93,21 @@ def remove_subnet(subnet_name):
 	os.system(cmd)
 
 
-def attach(ip, subnet_name, container_name, interface):
+def attach(ip, subnet_name, container_name, interface, tc_params):
 	"""
 	Attach container to subnet
 	:param subnet_name: name of subnet
 	:param container_name: name of container
+	:param tc_params: tuple (bandwidth, burst, latency)
 	:return: None
 	"""
-	if interface != "eth0":
+	if interface == "eth0":
+		configure_link(container_name, interface, tc_params)
+	else:
 		cmd = f"docker network connect --ip {ip} {subnet_name} {container_name}"
 		print(cmd)
 		os.system(cmd)
+		configure_link(container_name, interface, tc_params)
 
 
 def detach(subnet_name, container_name):
@@ -197,6 +202,28 @@ def generate_link_param(node_vs_eth, link_info):
 	return link_name, node_vs_eth, link_param
 
 
+def configure_link(node, interface, tc_params):
+	"""
+	Configure interface on node
+	:param node: node to configure
+	:param interface: interface to configure
+	:param tc_params: tuple (bandwidth, burst, latency)
+	:return: None
+	"""
+	bandwidth, burst, latency = tc_params
+	cmd_bandwidth = f"docker exec {node} tc qdisc add dev {interface} " \
+	      f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency {latency}ms"
+	cmd_latency = f"docker exec {node} tc qdisc add dev {interface} " \
+	              f"parent 1:1 handle 10: netem delay {latency}ms"
+	cmd_value_bandwidth = os.system(cmd_bandwidth)
+	cmd_value_latency = os.system(cmd_latency)
+	if cmd_value_bandwidth != 0 or cmd_value_latency != 0:
+		clear_cmd = f"docker exec {node} tc qdisc del dev {interface} root"
+		os.system(clear_cmd)
+		os.system(cmd_bandwidth)
+		os.system(cmd_latency)
+
+
 if __name__ == "__main__":
 	node_vs_ip = {}
 	node_vs_eth = {}
@@ -218,8 +245,9 @@ if __name__ == "__main__":
 			nodes = current_state["nodes"]
 			create_subnet(link_param[0], link_name)
 			endpoints = link_param[1]
-			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
-			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
+			tc_params = link_param[2]
+			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2], tc_params)
+			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2], tc_params)
 		# Handling remove_link functionality
 		elif (str(sys.argv[1]) == "remove_link"):
 			current_state = read_state_json()
@@ -271,9 +299,10 @@ if __name__ == "__main__":
 		# attach containers to networks
 		for link_name, link_param in links.items():
 			endpoints = link_param[1]
+			tc_params = link_param[2]
 			try:
-				attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2])
-				attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2])
+				attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2], tc_params)
+				attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2], tc_params)
 			except Exception as e:
 				print(e)
 
@@ -285,7 +314,7 @@ if __name__ == "__main__":
 	# Create Graph
 	for link_name, link_param in links.items():
 		endpoints = link_param[1]
-		band_width = link_param[2]
+		tc_params = link_param[2]
 
 		if endpoints[0][0] not in node_vs_ip:
 			node_vs_ip[endpoints[0][0]] = []
@@ -297,13 +326,13 @@ if __name__ == "__main__":
 		if endpoints[0][0] not in graph:
 			graph[endpoints[0][0]] = []
 			connections[endpoints[0][0]] = {}
-		graph[endpoints[0][0]].append((endpoints[1][0], float(band_width)))
+		graph[endpoints[0][0]].append((endpoints[1][0], tc_params))
 		connections[endpoints[0][0]][endpoints[1][0]] = (
 		endpoints[1][1], endpoints[0][2])  # ip of other node,eth of itself
 		if endpoints[1][0] not in graph:
 			graph[endpoints[1][0]] = []
 			connections[endpoints[1][0]] = {}
-		graph[endpoints[1][0]].append((endpoints[0][0], float(band_width)))
+		graph[endpoints[1][0]].append((endpoints[0][0], tc_params))
 		connections[endpoints[1][0]][endpoints[0][0]] = (endpoints[0][1], endpoints[1][2])
 
 	for start_node in graph:
