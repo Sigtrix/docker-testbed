@@ -8,7 +8,7 @@ RUN apt-get update && \
     traceroute \
     iperf \
     vim \
-     wget \
+    wget \
     make \
     gcc \
     build-essential \
