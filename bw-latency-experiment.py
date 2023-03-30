@@ -31,7 +31,8 @@ def configure_params(links, params):
 	:param params: tuple (bandwidth, burst, latency)
 	:return: None
 	"""
-	for link_name, link_param in links.items():
+	#TODO
+	for _, link_param in links.items():
 		endpoint0 = link_param[1][0]
 		endpoint1 = link_param[1][1]
 		configure_link(endpoint0[0], endpoint0[2], params)
@@ -43,7 +44,7 @@ os.system(f"docker exec {server['name']} iperf -s &")
 
 for i in range(len(bandwidth_values)):
 	# update bw on all links
-	tc_params = (bandwidth_values[i], 2, 2)
+	tc_params = (bandwidth_values[i], 2, 2) #Default value of burst and latency = 2
 	print(tc_params)
 	current_state = read_state_json()
 	links = current_state["links"]
@@ -63,12 +64,13 @@ for i in range(len(bandwidth_values)):
 
 for i in range(len(latency_values)):
 	# update latency on all links
-	tc_params = (2, 2, latency_values[i])
+	tc_params = (2, 2, latency_values[i]) #Default value of BW and burst = 2
 	print(tc_params)
 	current_state = read_state_json()
 	links = current_state["links"]
 	configure_params(links, tc_params)
 
+	# Default value of number of pings = 10
 	result = subprocess.run(['docker', 'exec', client, 'ping', '-c', '10', server['ip']], stdout=subprocess.PIPE)
 	output = result.stdout.decode('utf-8')
 	print(output)

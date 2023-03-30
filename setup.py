@@ -217,8 +217,11 @@ def configure_link(node, interface, tc_params):
 	              f"parent 1:1 handle 10: netem delay {latency}ms"
 	cmd_value_bandwidth = os.system(cmd_bandwidth)
 	cmd_value_latency = os.system(cmd_latency)
+	# Error handling for cmd_bandwidth and cmd_latency
 	if cmd_value_bandwidth != 0 or cmd_value_latency != 0:
+		clear_child = f"docker exec {node} tc qdisc del dev {interface} parent 1:1 handle 10"
 		clear_cmd = f"docker exec {node} tc qdisc del dev {interface} root"
+		os.system(clear_child)
 		os.system(clear_cmd)
 		os.system(cmd_bandwidth)
 		os.system(cmd_latency)
