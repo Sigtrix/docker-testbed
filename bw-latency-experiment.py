@@ -74,31 +74,31 @@ plt.savefig('bandwidth-measurements')
 plt.show()
 
 
-# for i in range(len(latency_values)):
-# 	# update latency on all links
-# 	tc_params = (bandwidth_const, burst_const, latency_values[i])
-# 	print(tc_params)
-# 	current_state = read_state_json()
-# 	links = current_state["links"]
-# 	configure_params(links, tc_params)
-#
-# 	result = subprocess.run(['docker', 'exec', client, 'ping', '-c', '10', server], stdout=subprocess.PIPE)
-# 	output = result.stdout.decode('utf-8')
-# 	print(output)
-#
-# 	# parse output to get bandwidth
-# 	output = re.split('[ /]', output)
-# 	avg_latency = float(output[-4])/2
-# 	latency_results.append(avg_latency)
-#
-# # plot latency results
-# plt.scatter(latency_values, latency_results, c='orange')
-# plt.axline((0, 0), slope=1, c='black', linestyle='--')
-# plt.xlabel('Latency values configured with tc')
-# plt.ylabel('Measured latency using ping')
-# plt.title('Latency comparison [ms]')
-# plt.savefig('latency-measurements')
-# plt.show()
+for i in range(len(latency_values)):
+	# update latency on all links
+	tc_params = (bandwidth_const, burst_const, latency_values[i])
+	print(tc_params)
+	current_state = read_state_json()
+	links = current_state["links"]
+	configure_params(links, tc_params)
+
+	result = subprocess.run(['docker', 'exec', client, 'ping', '-c', '10', server], stdout=subprocess.PIPE)
+	output = result.stdout.decode('utf-8')
+	print(output)
+
+	# parse output to get bandwidth
+	output = re.split('[ /]', output)
+	avg_latency = float(output[-4])/2
+	latency_results.append(avg_latency)
+
+# plot latency results
+plt.scatter(latency_values, latency_results, c='orange')
+plt.axline((0, 0), slope=1, c='black', linestyle='--')
+plt.xlabel('Latency values configured with tc')
+plt.ylabel('Measured latency using ping')
+plt.title('Latency comparison [ms]')
+plt.savefig('latency-measurements')
+plt.show()
 
 
 
