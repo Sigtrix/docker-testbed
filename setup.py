@@ -212,7 +212,7 @@ def configure_link(node, interface, tc_params):
 	"""
 	bandwidth, burst, latency = tc_params
 	cmd_bandwidth = f"docker exec {node} tc qdisc add dev {interface} " \
-	      f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency {latency}ms"
+	      f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency 10ms"
 	cmd_latency = f"docker exec {node} tc qdisc add dev {interface} " \
 	              f"parent 1:1 handle 10: netem delay {latency}ms"
 	cmd_value_bandwidth = os.system(cmd_bandwidth)
