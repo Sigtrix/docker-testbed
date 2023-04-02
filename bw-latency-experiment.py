@@ -32,7 +32,8 @@ def configure_params(links, params):
 	:param params: tuple (bandwidth, burst, latency)
 	:return: None
 	"""
-	for link_name, link_param in links.items():
+	#TODO
+	for _, link_param in links.items():
 		endpoint0 = link_param[1][0]
 		endpoint1 = link_param[1][1]
 		configure_link(endpoint0[0], endpoint0[2], params)
@@ -62,7 +63,6 @@ for i in range(len(bandwidth_values)):
 	elif 'Gbits' in unit:
 		bandwidth *= 1000
 	bandwidth_results.append(bandwidth)
-
 
 # plot bandwidth test results
 plt.scatter(bandwidth_values, bandwidth_results, c='orange')
