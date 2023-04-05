@@ -10,10 +10,11 @@ import re
 import numpy as np
 from setup import configure_link, read_state_json
 import matplotlib.pyplot as plt
+import importlib
 
 
-server = 'c1'
-client = 'r1'
+server = 's1'
+client = 'c1'
 
 bandwidth_values = [1] + list(np.arange(10, 101, 20)) + list(np.arange(0, 10001, 1000)[1:])
 bandwidth_results = []
@@ -24,6 +25,14 @@ latency_values = list(np.arange(1, 20, 5)) + list(np.arange(20, 110, 20))
 latency_results = []
 bandwidth_const = 2
 
+config = importlib.import_module('dumbbell')
+server_ip = 0
+client_ip = 0
+for node_name, node_param in config.nodes.items():
+	if(node_name == server):
+		server_ip = node_param[0]
+	if(node_name == client):
+		client_ip = node_param[0]
 
 def configure_params(links, params):
 	"""
@@ -39,7 +48,7 @@ def configure_params(links, params):
 		configure_link(endpoint1[0], endpoint1[2], params)
 
 
-# setup iperf server on r1
+# setup iperf server on server node(destination node)
 os.system(f"docker exec {server} iperf -s &")
 
 for i in range(len(bandwidth_values)):
@@ -50,7 +59,7 @@ for i in range(len(bandwidth_values)):
 	links = current_state["links"]
 	configure_params(links, tc_params)
 
-	result = subprocess.run(['docker', 'exec', client, 'iperf', '-c', server], stdout=subprocess.PIPE)
+	result = subprocess.run(['docker', 'exec', client, 'iperf', '-c', server_ip], stdout=subprocess.PIPE)
 	output = result.stdout.decode('utf-8')
 	print(output)
 
@@ -69,7 +78,8 @@ plt.axline((0, 0), slope=1, c='black', linestyle='--')
 plt.xlabel('Bandwidth values configured with tc')
 plt.ylabel('Measured bandwidth using iperf')
 plt.title(f'Bandwidth [Mbits/sec] comparison (latency {latency_const}ms)')
-plt.savefig('bandwidth-measurements')
+plotname = str(server) + "_" + str(client) + "bandwidth-measurements"
+plt.savefig(plotname)
 plt.show()
 
 
@@ -81,7 +91,7 @@ for i in range(len(latency_values)):
 	links = current_state["links"]
 	configure_params(links, tc_params)
 
-	result = subprocess.run(['docker', 'exec', client, 'ping', '-c', '10', server], stdout=subprocess.PIPE)
+	result = subprocess.run(['docker', 'exec', client, 'ping', '-c', '10', server_ip], stdout=subprocess.PIPE)
 	output = result.stdout.decode('utf-8')
 	print(output)
 
@@ -96,7 +106,8 @@ plt.axline((0, 0), slope=1, c='black', linestyle='--')
 plt.xlabel('Latency values configured with tc')
 plt.ylabel('Measured latency using ping')
 plt.title('Latency comparison [ms]')
-plt.savefig('latency-measurements')
+plotname = str(server) + "_" + str(client) + "latency-measurements"
+plt.savefig(plotname)
 plt.show()
 
 
