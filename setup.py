@@ -1,7 +1,7 @@
 import os
 import sys
 import ast
-import config
+import importlib
 from queue import PriorityQueue
 import json
 
@@ -228,6 +228,7 @@ def configure_link(node, interface, tc_params):
 
 
 if __name__ == "__main__":
+	config = importlib.import_module('dumbbell')
 	node_vs_ip = {}
 	node_vs_eth = {}
 	for node_name, node_param in config.nodes.items():

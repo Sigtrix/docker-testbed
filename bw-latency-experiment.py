@@ -12,15 +12,15 @@ from setup import configure_link, read_state_json
 import matplotlib.pyplot as plt
 
 
-server = 'r1'
-client = 'c1'
+server = 'c1'
+client = 'r1'
 
-bandwidth_values = [1] + list(np.arange(10, 101, 10)) + list(np.arange(0, 10001, 250)[1:])
+bandwidth_values = [1] + list(np.arange(10, 101, 20)) + list(np.arange(0, 10001, 1000)[1:])
 bandwidth_results = []
 latency_const = 1
 burst_const = 12500
 
-latency_values = list(np.arange(1, 20, 1)) + list(np.arange(20, 110, 10))
+latency_values = list(np.arange(1, 20, 5)) + list(np.arange(20, 110, 20))
 latency_results = []
 bandwidth_const = 2
 
@@ -32,7 +32,6 @@ def configure_params(links, params):
 	:param params: tuple (bandwidth, burst, latency)
 	:return: None
 	"""
-	#TODO
 	for _, link_param in links.items():
 		endpoint0 = link_param[1][0]
 		endpoint1 = link_param[1][1]
