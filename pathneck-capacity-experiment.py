@@ -15,10 +15,10 @@ contesting_client = 'c2'
 client = 'c1'
 
 # setup iperf server on bottleneck link destination
-# os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
+os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
 # generate background traffic from c2 to r3 (through r2)
-# os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
+os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
 # run pathneck from client c1 to server s1
 result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']], stdout=subprocess.PIPE)
