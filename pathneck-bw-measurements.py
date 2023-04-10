@@ -4,7 +4,6 @@ with linear topology and estimate the bandwidth on the bottleneck link.
 """
 import subprocess
 import os
-import re
 import numpy as np
 from setup import configure_link, read_state_json
 import statistics
@@ -27,7 +26,7 @@ print(bottlneck_bw_values)
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
 # generate background traffic from c2 to r3 (through r2)
-os.system(f"docker exec {contesting_client} iperf -t 0 -P 20 -c {bottleneck_link_dest['ip']} &")
+os.system(f"docker exec {contesting_client} iperf -t 0 -P 40 -c {bottleneck_link_dest['ip']} &")
 
 # run pathneck from client c1 to server s1
 bandwidth_est = []
