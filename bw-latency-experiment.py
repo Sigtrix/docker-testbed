@@ -14,14 +14,14 @@ import importlib
 
 
 server = 's1'
-client = 'c1'
+client = 'ue1'
 
-bandwidth_values = [1] + list(np.arange(10, 101, 20)) + list(np.arange(0, 10001, 1000)[1:])
+bandwidth_values = list(np.arange(1, 101, 20))
 bandwidth_results = []
 latency_const = 1
 burst_const = 12500
 
-latency_values = list(np.arange(1, 20, 5)) + list(np.arange(20, 110, 20))
+latency_values = list(np.arange(1, 20, 5))
 latency_results = []
 bandwidth_const = 2
 
