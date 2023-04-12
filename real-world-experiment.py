@@ -9,11 +9,11 @@ from setup import configure_link, read_state_json
 import statistics
 import matplotlib.pyplot as plt
 
-bottleneck_link_dest = {'name': 'r1', 'ip': '10.0.1.4'}
-bottleneck_link_name = "r1-enb2"
-server = {'name': 's1', 'ip': '10.0.1.2'}
-contesting_client = 'ue3'
-client = 'ue2'
+bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
+bottleneck_link_name = "r1-enb1"
+server = {'name': 'ue1', 'ip': '10.0.3.4'}
+contesting_client = 's1'
+client = 'ue4'
 
 n_iter = 10
 latency_const = 1
