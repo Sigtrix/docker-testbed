@@ -9,8 +9,8 @@ from setup import configure_link, read_state_json
 import statistics
 import matplotlib.pyplot as plt
 
-bottleneck_link_dest = {'name': 's1', 'ip': '10.0.1.2'}
-bottleneck_link_name = "s1-r2"
+bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
+bottleneck_link_name = "r1-enb1"
 server = {'name': 'ue1', 'ip': '10.0.3.4'}
 client = 'extra'
 
@@ -18,7 +18,7 @@ n_iter = 5
 latency_const = 1
 burst_const = 12500
 
-bottlneck_bw_values = list(np.arange(10, 81, 10))
+bottlneck_bw_values = list(np.arange(10, 101, 10))
 print(bottlneck_bw_values)
 
 # setup iperf server on server
