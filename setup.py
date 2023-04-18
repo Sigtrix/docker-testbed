@@ -1,6 +1,7 @@
 import os
 import sys
 import ast
+import importlib
 import pathneck_config as config
 from queue import PriorityQueue
 import json
@@ -31,7 +32,7 @@ def dijkstra(graph, start):
 			continue
 		for neighbor, weight in graph[current_node]:
 			# weights are bandwidth values
-			distance = current_dist + weight[0]
+			distance = current_dist + 1./weight[0]
 			if distance < dist[neighbor][0]:
 				dist[neighbor] = [distance, current_node]
 				pq.put([distance, neighbor])
@@ -228,6 +229,7 @@ def configure_link(node, interface, tc_params):
 
 
 if __name__ == "__main__":
+	config = importlib.import_module('real_world-load-determined')
 	node_vs_ip = {}
 	node_vs_eth = {}
 	for node_name, node_param in config.nodes.items():

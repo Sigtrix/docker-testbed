@@ -11,7 +11,7 @@ setup:
 	python3 setup.py
 
 run:
-	bash ./events.sh
+	python3 events.py
 
 test:
-	docker exec -it c1 traceroute 10.0.3.2
+	docker exec -it c1 traceroute 10.0.4.4
