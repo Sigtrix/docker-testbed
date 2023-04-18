@@ -1,11 +1,9 @@
 import os
-import sys
 import ast
 import importlib
-import pathneck_config as config
 from queue import PriorityQueue
 import json
-
+import argparse
 
 def dijkstra(graph, start):
 	"""
@@ -32,7 +30,7 @@ def dijkstra(graph, start):
 			continue
 		for neighbor, weight in graph[current_node]:
 			# weights are bandwidth values
-			distance = current_dist + 1./weight[0]
+			distance = current_dist + 1. / weight[0]
 			if distance < dist[neighbor][0]:
 				dist[neighbor] = [distance, current_node]
 				pq.put([distance, neighbor])
@@ -162,7 +160,7 @@ def write_state_json(nodes, links, node_vs_ip, node_vs_eth):
 	:param: node_vs_eth: the highest ethernet interface number used.
 	:return: the current state of the graph in dictionary format
 	"""
-	with open("state.json", "w") as f:
+	with open("../tmp/state.json", "w") as f:
 		json.dump({"nodes": nodes, "links": links, "node_vs_ip": node_vs_ip, "node_vs_eth": node_vs_eth}, f, indent=4)
 
 
@@ -172,7 +170,7 @@ def read_state_json():
 	:param: None
 	:return: the current state of the graph in dictionary format
 	"""
-	with open("state.json", "r") as f:
+	with open("../tmp/state.json", "r") as f:
 		current_state = json.load(f)
 	return current_state
 
@@ -213,7 +211,7 @@ def configure_link(node, interface, tc_params):
 	"""
 	bandwidth, burst, latency = tc_params
 	cmd_bandwidth = f"docker exec {node} tc qdisc add dev {interface} " \
-	      f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency 10ms"
+	                f"root handle 1: tbf rate {bandwidth}mbit burst {burst}kb latency 10ms"
 	cmd_latency = f"docker exec {node} tc qdisc add dev {interface} " \
 	              f"parent 1:1 handle 10: netem delay {latency}ms"
 	cmd_value_bandwidth = os.system(cmd_bandwidth)
@@ -228,62 +226,64 @@ def configure_link(node, interface, tc_params):
 		os.system(cmd_latency)
 
 
-if __name__ == "__main__":
-	config = importlib.import_module('real_world-load-determined')
-	node_vs_ip = {}
-	node_vs_eth = {}
-	for node_name, node_param in config.nodes.items():
-		if node_name not in node_vs_ip:
-			node_vs_ip[node_name] = []
-		node_vs_ip[node_name].append(node_param[0])
-	if len(sys.argv) == 3:
-		print(sys.argv[1])
-		print(sys.argv[2])
+def main(args):
+	"""
+	Sets up configured topology as described by args parameters
+	:param args: parameters describing network topology
+	:return: None
+	"""
+	if args.add_link is not None:
+		print(f'Adding link: {args.add_link}')
 		# Handling add_link functionality
-		if (str(sys.argv[1]) == "add_link"):
-			current_state = read_state_json()
-			node_vs_eth = current_state["node_vs_eth"]
-			link_info = ast.literal_eval(sys.argv[2])
-			link_name, node_vs_eth, link_param = generate_link_param(node_vs_eth, link_info)
-			current_state["links"][link_name] = link_param
-			links = current_state["links"]
-			nodes = current_state["nodes"]
-			create_subnet(link_param[0], link_name)
-			endpoints = link_param[1]
-			tc_params = link_param[2]
-			attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2], tc_params)
-			attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2], tc_params)
+		current_state = read_state_json()
+		node_vs_eth = current_state["node_vs_eth"]
+		link_info = ast.literal_eval(args.add_link)
+		link_name, node_vs_eth, link_param = generate_link_param(node_vs_eth, link_info)
+		current_state["links"][link_name] = link_param
+		links = current_state["links"]
+		nodes = current_state["nodes"]
+		create_subnet(link_param[0], link_name)
+		endpoints = link_param[1]
+		tc_params = link_param[2]
+		attach(endpoints[0][1], link_name, endpoints[0][0], endpoints[0][2], tc_params)
+		attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2], tc_params)
+	elif args.remove_link:
+		print(f'Removing link: {args.remove_link}')
 		# Handling remove_link functionality
-		elif (str(sys.argv[1]) == "remove_link"):
-			current_state = read_state_json()
-			node_vs_eth_not_used = {}
-			link_info = ast.literal_eval(sys.argv[2])
-			link_name, node_vs_eth_not_used, link_param = generate_link_param(node_vs_eth_not_used, link_info)
-			node_vs_eth = current_state["node_vs_eth"]
-			endpoints = link_param[1]
-			if link_name in current_state["links"]:
-				start_node = endpoints[0][0]
-				dest_node = endpoints[1][0]
-				# deleting direct connections due to this link in routing tables
-				for dest_node_ip in current_state["node_vs_ip"][dest_node]:
-					del_route(start_node, dest_node_ip)
-				# because bidirectional
-				for start_node_ip in current_state["node_vs_ip"][start_node]:
-					del_route(dest_node, start_node_ip)
-				# deleting from links data structure
-				del current_state["links"][link_name]
-			else:
-				print("Link being deleted not present.")
-				exit()
-			links = current_state["links"]
-			nodes = current_state["nodes"]
-			detach(link_name, endpoints[0][0])
-			detach(link_name, endpoints[1][0])
-			remove_subnet(link_name)  # remove subnet after detaching containers or containers will get killed.
+		current_state = read_state_json()
+		node_vs_eth_not_used = {}
+		link_info = ast.literal_eval(args.remove_link)
+		link_name, node_vs_eth_not_used, link_param = generate_link_param(node_vs_eth_not_used, link_info)
+		node_vs_eth = current_state["node_vs_eth"]
+		endpoints = link_param[1]
+		if link_name in current_state["links"]:
+			start_node = endpoints[0][0]
+			dest_node = endpoints[1][0]
+			# deleting direct connections due to this link in routing tables
+			for dest_node_ip in current_state["node_vs_ip"][dest_node]:
+				del_route(start_node, dest_node_ip)
+			# because bidirectional
+			for start_node_ip in current_state["node_vs_ip"][start_node]:
+				del_route(dest_node, start_node_ip)
+			# deleting from links data structure
+			del current_state["links"][link_name]
 		else:
-			print("Invalid Argument")
+			print("Link being deleted not present.")
+			exit()
+		links = current_state["links"]
+		nodes = current_state["nodes"]
+		detach(link_name, endpoints[0][0])
+		detach(link_name, endpoints[1][0])
+		remove_subnet(link_name)  # remove subnet after detaching containers or containers will get killed.
 	# Reading and storing information from the config.py file
-	else:
+	elif args.config is not None:
+		config = importlib.import_module(args.config)
+		node_vs_ip = {}
+		node_vs_eth = {}
+		for node_name, node_param in config.nodes.items():
+			if node_name not in node_vs_ip:
+				node_vs_ip[node_name] = []
+			node_vs_ip[node_name].append(node_param[0])
 		# update links to include interface and link_name
 		links = {}
 		for link_info in config.links:
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 			links[link_name] = link_param
 		nodes = config.nodes
 		# build image for node
-		build_image("node-image", ".")
+		build_image("node-image", "..")
 
 		# create subnets
 		for link_name, link_param in links.items():
@@ -310,8 +310,8 @@ if __name__ == "__main__":
 				attach(endpoints[1][1], link_name, endpoints[1][0], endpoints[1][2], tc_params)
 			except Exception as e:
 				print(e)
-
-	# TODO: configure bandwidth of links
+	else:
+		print("Invalid Argument")
 
 	# Using Dijkstra to configure routing tables with add route function above
 	graph = {}
@@ -333,7 +333,7 @@ if __name__ == "__main__":
 			connections[endpoints[0][0]] = {}
 		graph[endpoints[0][0]].append((endpoints[1][0], tc_params))
 		connections[endpoints[0][0]][endpoints[1][0]] = (
-		endpoints[1][1], endpoints[0][2])  # ip of other node,eth of itself
+			endpoints[1][1], endpoints[0][2])  # ip of other node,eth of itself
 		if endpoints[1][0] not in graph:
 			graph[endpoints[1][0]] = []
 			connections[endpoints[1][0]] = {}
@@ -364,3 +364,17 @@ if __name__ == "__main__":
 
 	# Store the current state to state.json file
 	write_state_json(nodes, links, node_vs_ip, node_vs_eth)
+
+
+if __name__ == "__main__":
+	# parse arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-al', '--add-link', type=str, required=False, default=None,
+	                    help='link info of link to add')
+	parser.add_argument('-rl', '--remove-link', type=str, required=False,
+	                    default=None, help='link info of link to remove')
+	parser.add_argument('-c', '--config', type=str, required=False,
+	                    help='config file describing topology to set up '
+	                         '(see examples folder for examples)')
+	args = parser.parse_args()
+	main(args)

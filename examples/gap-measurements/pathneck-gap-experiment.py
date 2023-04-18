@@ -4,9 +4,6 @@ with a capacity determined bottleneck
 """
 import subprocess
 import os
-import re
-import numpy as np
-from setup import configure_link, read_state_json
 import matplotlib.pyplot as plt
 
 bottleneck_link_dest = {'name': 'r3', 'ip': '10.0.3.3'}

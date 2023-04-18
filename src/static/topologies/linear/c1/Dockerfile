@@ -10,7 +10,7 @@ RUN apt-get update && \
     vim \
     python3
 
-COPY ./echo_server.py /usr/src/app/
+COPY echo_client.py /usr/src/app/
 
 # Start a shell and keep the container running
 CMD ["tail", "-f", "/dev/null"]

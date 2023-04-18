@@ -5,28 +5,27 @@ with linear topology and estimate the bandwidth on the bottleneck link.
 import subprocess
 import os
 import numpy as np
-from setup import configure_link, read_state_json
+from src.setup import configure_link, read_state_json
 import statistics
 import matplotlib.pyplot as plt
 
-bottleneck_link_dest = {'name': 'r3', 'ip': '10.0.3.3'}
-bottleneck_link_name = "r2-r3"
-server = {'name': 's1', 'ip': '10.0.5.5'}
-contesting_client = 'c2'
-client = 'c1'
+bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
+bottleneck_link_name = "r1-enb1"
+server = {'name': 'ue1', 'ip': '10.0.3.4'}
+client = 'extra'
 
-n_iter = 10
+n_iter = 5
 latency_const = 1
 burst_const = 12500
 
-bottlneck_bw_values = list(np.arange(10, 101, 5))
+bottlneck_bw_values = list(np.arange(10, 101, 10))
 print(bottlneck_bw_values)
 
-# setup iperf server on bottleneck link destination
-os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
+# setup iperf server on server
+os.system(f"docker exec {server['name']} iperf -s &")
 
-# generate background traffic from c2 to r3 (through r2)
-os.system(f"docker exec {contesting_client} iperf -t 0 -P 40 -c {bottleneck_link_dest['ip']} &")
+# generate background traffic on path from client to server
+os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 
 # run pathneck from client c1 to server s1
 bandwidth_est = []
@@ -57,9 +56,8 @@ for i in range(len(bottlneck_bw_values)):
 # plot bandwidth test results
 plt.scatter(bottlneck_bw_values, bandwidth_est, c='orange')
 plt.axline((0, 0), slope=1, c='black', linestyle='--')
-plt.xlabel('Bandwidth values on bottleneck configured with tc')
+plt.xlabel('Bandwidth values configured with tc')
 plt.ylabel('Measured bandwidth on detected bottlneck with pathneck')
 plt.title(f'Bandwidth [Mbits/sec] comparison')
 plt.savefig('pathneck-bandwidth-measurements')
 plt.show()
-
