@@ -11,4 +11,4 @@ setup:
 	python3 ./src/setup.py --config $(CONFIG)
 
 run:
-	python3 ./tmp/events.py
+	python3 $(EXPERIMENT)
