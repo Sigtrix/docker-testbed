@@ -10,7 +10,7 @@ Docker containers and run user defined experiments for data collection on these 
 
 ### Define a network topology
 A network topology can be configured in a python file. Some examples
-can be found in the [examples](file://examples)
+can be found in the [examples](examples)
 folder. 
 
 ### Create network
@@ -23,11 +23,11 @@ make setup CONFIG=<file_path>
 
 ### Create an experiment
 An experiment can be implemented as a python script. Some examples
-can be found in the [examples](file:///examples)
+can be found in the [examples](examples)
 folder. The default image supports among other tools: 
 *ping*, *iperf*, *traceroute* and *pathneck*. If further tools
 are needed for an experiment these can be added to the 
-[Dockerfile](file:///Dockerfile).
+[Dockerfile](Dockerfile).
 
 ### Run experiment
 To run an experiment simply run the python script that defines
