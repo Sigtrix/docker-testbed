@@ -8,7 +8,10 @@ clean:
 	echo '{}' > ./tmp/state.json
 
 setup:
-	python3 ./src/setup.py --config $(CONFIG)
+	cd src && python3 setup.py --config $(CONFIG)
 
 run:
-	python3 $(EXPERIMENT)
+	cd src && python3 $(EXPERIMENT)
+
+test:
+	python3 $(TESTSCRIPT)
