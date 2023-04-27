@@ -54,16 +54,14 @@ For running any test scripts on the data generated from the experiment,
 run the following command.
 ```
 make test TESTSCRIPT=<file_path>
-
+```
 *Note*: 
 - To clean up resources after running an experiment simply run
-the following make command:
+the following make command. Note that the make clean uses the state.json file which is present in the tmp directory. Hence, if the state.json gets deleted or updated not by the current run, then the docker resources
+need to be manually cleaned.:
 ```
 make clean
 ```
-Note that the make clean uses the state.json file which is present in the tmp directory.
-Hence, if the state.json gets deleted or updated not by the current run, then the docker resources
-need to be manually cleaned.
 
 - To set up a topology with from a topology config file <topology_config>
 and run an experiment defined in a file <experiment_config> as well as
