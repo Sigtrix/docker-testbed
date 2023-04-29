@@ -36,7 +36,6 @@ The following make command can also be run:
 ```
 make run EXPERIMENT=<file_path> 
 ```
-
 *Note*: 
 - To clean up resources after running an experiment simply run
 the following make command:
