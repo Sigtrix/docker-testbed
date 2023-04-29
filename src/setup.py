@@ -5,6 +5,7 @@ from queue import PriorityQueue
 import json
 import argparse
 
+
 def dijkstra(graph, start):
 	"""
 	Function to compute the shortest path from a source node to all other nodes in the graph
@@ -373,7 +374,7 @@ if __name__ == "__main__":
 	                    help='link info of link to add')
 	parser.add_argument('-rl', '--remove-link', type=str, required=False,
 	                    default=None, help='link info of link to remove')
-	parser.add_argument('-c', '--config', type=str, required=False,
+	parser.add_argument('-c', '--config', type=str, required=False, default='topology_config',
 	                    help='config file describing topology to set up '
 	                         '(see examples folder for examples)')
 	args = parser.parse_args()

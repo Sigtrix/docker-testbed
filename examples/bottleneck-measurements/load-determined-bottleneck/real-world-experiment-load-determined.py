@@ -7,7 +7,7 @@ import os
 import numpy as np
 import statistics
 import matplotlib.pyplot as plt
-from src.setup import configure_link, read_state_json
+from setup import configure_link, read_state_json
 
 bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
 dynamic_link_name = "r1-enb2"

@@ -8,7 +8,7 @@ import subprocess
 import os
 import re
 import numpy as np
-from src.setup import configure_link, read_state_json
+from setup import configure_link, read_state_json
 import matplotlib.pyplot as plt
 import importlib
 

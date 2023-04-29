@@ -5,7 +5,7 @@ with linear topology and estimate the bandwidth on the bottleneck link.
 import subprocess
 import os
 import numpy as np
-from src.setup import configure_link, read_state_json
+from setup import configure_link, read_state_json
 import statistics
 import matplotlib.pyplot as plt
 

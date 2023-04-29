@@ -28,11 +28,11 @@ the ips of both the node belong to. Thus ensure that the order you include the n
 the link corresponds to the intended link name.
 
 ### Create network
-To create a network of Docker containers from a network topology
-configuration file, provide the config file as an argument to the
-make command as follows:
+To create a network of Docker containers from the 
+[network topology configuration file](src/topology_config.py), 
+run the following make command:
 ```
-make setup CONFIG=<file_path>
+make setup
 ```
 
 ### Create an experiment
@@ -45,10 +45,10 @@ are needed for an experiment these can be added to the
 
 ### Run experiment
 To run an experiment simply run the python script that defines
-the experiment on the system with Docker installed and running.
+the [experiment](src/experiment.py) on the system with Docker installed and running.
 The following make command can also be run:
 ```
-make run EXPERIMENT=<file_path> 
+make run
 ```
 For running any test scripts on the data generated from the experiment,
 run the following command.
@@ -67,5 +67,5 @@ make clean
 and run an experiment defined in a file <experiment_config> as well as
 clean up resources after the experiment run the following make command:
 ```
-make all CONFIG=<file_path> EXPERIMENT=<file_path>
+make all EXPERIMENT=<file_path>
 ```
