@@ -16,7 +16,7 @@ nodes = {"s1": ("10.0.1.2", "s1-r1"),
 
 """
 Links Format:
-[(endpoint_name1, ip1, (endpoint_name2, ip2)), (bandwidth[Mbit/s], burst[kb], latency[ms])), ...]
+[((endpoint_name1, ip1), (endpoint_name2, ip2), (bandwidth[Mbit/s], burst[kb], latency[ms])), ...]
 """
 links = [(("s1", "10.0.1.2"), ("r1", "10.0.1.4"), (200, 12500, 1)),
          (("r2", "10.0.2.2"), ("enb3", "10.0.2.4"), (150, 12500, 1)),
