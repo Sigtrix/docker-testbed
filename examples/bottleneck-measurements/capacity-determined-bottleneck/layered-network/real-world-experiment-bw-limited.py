@@ -2,11 +2,6 @@
 An experiment where pathneck is used to both detect a bottleneck in a network
 with linear topology and estimate the bandwidth on the bottleneck link.
 """
-import os
-import sys
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(os.path.dirname(current))
-sys.path.append(parent)
 import subprocess
 import os
 import numpy as np
