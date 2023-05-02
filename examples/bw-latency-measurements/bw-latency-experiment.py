@@ -34,6 +34,7 @@ for node_name, node_param in config.nodes.items():
 	if(node_name == client):
 		client_ip = node_param[0]
 
+
 def configure_params(links, params):
 	"""
 	Configure links in network with same params
