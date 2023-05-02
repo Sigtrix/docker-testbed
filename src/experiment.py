@@ -5,6 +5,11 @@ with a capacity determined bottleneck
 import subprocess
 import os
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+n_iter = 20
+bottleneck_bandwidth = []
+data = {'00': [], '01': [], '02': [], '03': []}
 
 bottleneck_link_dest = {'name': 'r3', 'ip': '10.0.3.3'}
 server = {'name': 's1', 'ip': '10.0.5.5'}
@@ -15,33 +20,31 @@ client = 'c1'
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
 # generate background traffic from c2 to r3 (through r2)
-os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
-# run pathneck from client c1 to server s1
-result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']], stdout=subprocess.PIPE)
-output = result.stdout.decode('utf-8')
-print(output)
-hop_ids = []
-gap_values = []
-bottleneck = None
-for line in output.splitlines():
-	line = line.split()
-	if len(line) == 8:
-		hop_ids.append(line[0])
-		gap_values.append(int(line[4]))
-		if line[5] == '1':
-			bottleneck = line[0]
+for i in range(n_iter):
+	result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']],
+	                        stdout=subprocess.PIPE)
+	output = result.stdout.decode('utf-8')
+	print(output)
+	for line in output.splitlines():
+		line = line.split()
+		if len(line) == 8:
+			if line[5] == '1':
+				bottleneck = line[0]
+				bottleneck_bw = float(line[6])
+				bottleneck_bandwidth.append(float(line[6]))
+				data[line[0]].append(bottleneck_bw)
 
-# plot gap values results
-plt.scatter(hop_ids, gap_values, c='orange')
-plt.plot(hop_ids, gap_values, c='black')
-if bottleneck is not None:
-	plt.scatter(bottleneck, gap_values[hop_ids.index(bottleneck)], marker='x', s=100, c='black')
-plt.xlabel('hop ID')
-plt.ylabel('gap values [us]')
-plt.title('gap values')
-plt.savefig('gap-measurements')
+# plot bandwidth test results
+total_data = [data[key] for key in data]
+sns.stripplot(data=total_data, jitter=True, color='black')
+sns.boxplot(total_data)
+plt.xlabel('Hop ID')
+plt.ylabel('Measured bandwidth ')
+plt.title(f'Bandwidth [Mbits/sec] distributions of detected bottlenecks')
+plt.savefig('pathneck-boxplot')
 plt.show()
+
 
 
