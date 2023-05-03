@@ -11,7 +11,7 @@ from setup import configure_link, read_state_json
 
 bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
 dynamic_link_name = "r1-enb2"
-server = {'name': 'ue1', 'ip': '10.0.3.4'}
+server = {'name': 'ue0', 'ip': '10.0.7.4'}
 contesting_client = 'enb2'
 client = 'ue4'
 
@@ -26,7 +26,7 @@ os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 # generate background traffic on path from client to server
 os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 # generate background traffic on bottleneck link from contesting client
-os.system(f"docker exec {contesting_client} iperf -t 0 -w 1M -c {bottleneck_link_dest['ip']} &")
+os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
 bottlneck_bw_values = list(np.arange(10, 60, 10))
 n_streams = len(bottlneck_bw_values)
