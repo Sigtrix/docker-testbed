@@ -16,7 +16,7 @@ server = {'name': 'ue0', 'ip': '10.0.7.4'}
 contesting_client = 'enb2'
 client = 'ue4'
 
-n_iter = 20
+n_iter = 5
 latency_const = 1
 burst_const = 12500
 data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
@@ -30,16 +30,16 @@ os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 # generate background traffic on bottleneck link from contesting client
 os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
-# bottlneck_bw_values = list(np.arange(100, 60, 10))
-bottlneck_bw_values = [100]
-n_streams = len(bottlneck_bw_values)
-print(bottlneck_bw_values)
+# bottleneck_bw_values = list(np.arange(100, 60, 10))
+bottleneck_bw_values = [100]
+n_streams = len(bottleneck_bw_values)
+print(bottleneck_bw_values)
 
 # run pathneck from client c1 to server s1
 bandwidth_est = []
 for i in range(n_streams):
 	# configure link before bottleneck link
-	contesting_traffic = bottlneck_bw_values[i]
+	contesting_traffic = bottleneck_bw_values[i]
 	print(f"contesting traffic: {contesting_traffic}")
 	current_state = read_state_json()
 	links = current_state["links"]

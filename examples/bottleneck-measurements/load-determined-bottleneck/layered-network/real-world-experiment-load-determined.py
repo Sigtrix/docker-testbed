@@ -8,6 +8,7 @@ import numpy as np
 import statistics
 import matplotlib.pyplot as plt
 from setup import configure_link, read_state_json
+import seaborn as sns
 
 bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
 dynamic_link_name = "r1-enb2"
@@ -15,20 +16,22 @@ server = {'name': 'ue0', 'ip': '10.0.7.4'}
 contesting_client = 'enb2'
 client = 'ue4'
 
-n_iter = 5
+n_iter = 20
 latency_const = 1
 burst_const = 12500
+data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
 
 # setup iperf server on server and bottleneck dest
-os.system(f"docker exec {server['name']} iperf -s &")
+# os.system(f"docker exec {server['name']} iperf -s &")
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
 # generate background traffic on path from client to server
-os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
+# os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 # generate background traffic on bottleneck link from contesting client
 os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
-bottlneck_bw_values = list(np.arange(10, 60, 10))
+# bottlneck_bw_values = list(np.arange(100, 60, 10))
+bottlneck_bw_values = [100]
 n_streams = len(bottlneck_bw_values)
 print(bottlneck_bw_values)
 
@@ -57,13 +60,14 @@ for i in range(n_streams):
 				if line[5] == '1':
 					bottleneck = line[0]
 					bottleneck_bandwidth.append(float(line[6]))
-	# calculate median estimated bandwidth
-	bandwidth_est.append(statistics.median(bottleneck_bandwidth))
+					data[line[0]].append(float(line[6]))
 
 # plot bandwidth test results
-plt.scatter(np.arange(1, n_streams+1), bandwidth_est, c='orange')
-plt.xlabel('Number of parallel streams on bottleneck link')
-plt.ylabel('Measured bandwidth on detected bottlneck with pathneck')
-plt.title(f'Bandwidth [Mbits/sec] comparison')
-plt.savefig('pathneck-bandwidth-measurements')
+total_data = [data[key] for key in data]
+sns.stripplot(data=total_data, jitter=True, color='black')
+sns.boxplot(total_data)
+plt.xlabel('Hop ID')
+plt.ylabel('Measured bandwidth ')
+plt.title(f'Bandwidth [Mbits/sec] distributions of detected bottlenecks')
+plt.savefig('pathneck-boxplot')
 plt.show()
