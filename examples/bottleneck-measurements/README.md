@@ -117,8 +117,8 @@ with similar values for the estimated available bandwidth.
 ![](../../measurements/bottleneck/load/pathneck-boxplot-real-world-load100.png)
 
 For the capacity determined bottleneck the capacity of the
-link between *enb1* and *ue1* was set to 30 Mbps as before
+link between *enb1* and *ue1* was set to 20 Mbps as before
 and the results are similar i.e. the correct bottleneck is
 detected with a good estimate of the available bandwidth.
 
-![](../../measurements/bottleneck/load/pathneck-boxplot-cap-bottleneck30.png)
+![](../../measurements/bottleneck/load/pathneck-boxplot-20-cap.png)
