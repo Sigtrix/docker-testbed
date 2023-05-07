@@ -1,66 +1,43 @@
 """
-An experiment where pathneck is used to both detect a bottleneck in a network
-with linear topology and estimate the bandwidth on the bottleneck link.
+An experiment measuring the gap values of hops for a linear network topology
+with a capacity determined bottleneck
 """
 import subprocess
 import os
-import numpy as np
-import statistics
 import matplotlib.pyplot as plt
-from setup import configure_link, read_state_json
 import seaborn as sns
 
-bottleneck_link_dest = {'name': 'enb1', 'ip': '10.0.3.2'}
-dynamic_link_name = "r1-enb2"
-server = {'name': 'ue0', 'ip': '10.0.7.4'}
-contesting_client = 'enb2'
-client = 'ue4'
+n_iter = 20
+bottleneck_bandwidth = []
+data = {'00': [], '01': [], '02': [], '03': []}
 
-n_iter = 5
-latency_const = 1
-burst_const = 12500
-data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
+bottleneck_link_dest = {'name': 'r3', 'ip': '10.0.3.3'}
+server = {'name': 's1', 'ip': '10.0.5.5'}
+contesting_client = 'c2'
+client = 'c1'
 
-# setup iperf server on server and bottleneck dest
+# setup iperf server on bottleneck link destination
 os.system(f"docker exec {server['name']} iperf -s &")
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
-# generate background traffic on path from client to server
+# generate background traffic from c2 to r3 (through r2)
 os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
-# generate background traffic on bottleneck link from contesting client
 os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
-# bottleneck_bw_values = list(np.arange(100, 60, 10))
-bottleneck_bw_values = [100]
-n_streams = len(bottleneck_bw_values)
-print(bottleneck_bw_values)
 
-# run pathneck from client c1 to server s1
-bandwidth_est = []
-for i in range(n_streams):
-	# configure link before bottleneck link
-	contesting_traffic = bottleneck_bw_values[i]
-	print(f"contesting traffic: {contesting_traffic}")
-	current_state = read_state_json()
-	links = current_state["links"]
-	tc_params = (contesting_traffic, burst_const, latency_const)
-	bottleneck_endpoint0 = links[dynamic_link_name][1][0]
-	bottleneck_endpoint1 = links[dynamic_link_name][1][1]
-	configure_link(bottleneck_endpoint0[0], bottleneck_endpoint0[2], tc_params)
-	configure_link(bottleneck_endpoint1[0], bottleneck_endpoint1[2], tc_params)
-	bottleneck_bandwidth = []
-	for j in range(n_iter):
-		result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']], stdout=subprocess.PIPE)
-		output = result.stdout.decode('utf-8')
-		print(output)
-		bottleneck = None
-		for line in output.splitlines():
-			line = line.split()
-			if len(line) == 8:
-				if line[5] == '1':
-					bottleneck = line[0]
-					bottleneck_bandwidth.append(float(line[6]))
-					data[line[0]].append(float(line[6]))
+for i in range(n_iter):
+	result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']],
+	                        stdout=subprocess.PIPE)
+	output = result.stdout.decode('utf-8')
+	print(output)
+	for line in output.splitlines():
+		line = line.split()
+		if len(line) == 8:
+			if line[5] == '1':
+				bottleneck = line[0]
+				bottleneck_bw = float(line[6])
+				bottleneck_bandwidth.append(float(line[6]))
+				data[line[0]].append(bottleneck_bw)
 
 # plot bandwidth test results
 total_data = [data[key] for key in data]
@@ -71,3 +48,6 @@ plt.ylabel('Measured bandwidth ')
 plt.title(f'Bandwidth [Mbits/sec] distributions of detected bottlenecks')
 plt.savefig('pathneck-boxplot')
 plt.show()
+
+
+
