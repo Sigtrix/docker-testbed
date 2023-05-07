@@ -22,7 +22,7 @@ burst_const = 12500
 n_iter = 20
 bottleneck_bandwidth = []
 data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
-bottlneck_bw_values = list(np.arange(10, 101, 10))
+bottlneck_bw_values = [float(x) for x in range(10, 201, 20)]
 print(bottlneck_bw_values)
 
 os.system(f"docker exec {contesting_client} pkill iperf")
@@ -59,10 +59,13 @@ for i in range(len(bottlneck_bw_values)):
 	time.sleep(2)
 	
 # plot bandwidth test results
-plt.scatter(bottlneck_bw_values, bandwidth_est, c='orange')
+bandwidth_est = [float(x) for x in bandwidth_est]
+plt.plot(bottlneck_bw_values, bottlneck_bw_values, c='blue', label = 'Value set')
+plt.scatter(bottlneck_bw_values, bandwidth_est, c='red', label = 'Measured')
 plt.xlabel('Bandwidth values configured with tc')
 plt.ylabel('Measured bandwidth on contending link with iperf')
 plt.title(f'Bandwidth [Mbits/sec] comparison')
+plt.legend()
 plt.savefig('iperf-bandwidth-measurements')
 plt.show()
 
