@@ -22,7 +22,7 @@ burst_const = 12500
 n_iter = 20
 bottleneck_bandwidth = []
 data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
-bottlneck_bw_values = [float(x) for x in range(10, 201, 20)]
+bottlneck_bw_values = [float(x) for x in range(10, 301, 30)]
 print(bottlneck_bw_values)
 
 os.system(f"docker exec {contesting_client} pkill iperf")
@@ -51,7 +51,7 @@ for i in range(len(bottlneck_bw_values)):
 	configure_link(bottleneck_endpoint0[0], bottleneck_endpoint0[2], tc_params)
 	configure_link(bottleneck_endpoint1[0], bottleneck_endpoint1[2], tc_params)
 	print(f"Bandwidth value = {bottlneck_bw_values[i]}")
-	result = os.popen(f"docker exec {contesting_client} iperf -t 20 -c {bottleneck_link_dest['ip']}").read()
+	result = os.popen(f"docker exec {contesting_client} iperf -t 90 -c {bottleneck_link_dest['ip']}").read()
 	lines = result.splitlines()
 	line = lines[6].split()
 	bandwidth_est.append(line[6])
