@@ -12,6 +12,7 @@ RUN apt-get update && \
     make \
     gcc \
     build-essential \
+    tcpdump \
     python3
 
 # Install Pathneck
