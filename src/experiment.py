@@ -2,7 +2,6 @@
 An experiment measuring the gap values of hops for a linear network topology
 with a capacity determined bottleneck
 """
-import subprocess
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -21,7 +20,7 @@ os.system(f"docker exec {server['name']} iperf -s &")
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
 # generate background traffic from c2 to r3 (through r2)
-# os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
+os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
 
 
@@ -49,4 +48,7 @@ plt.title(f'Bandwidth [Mbits/sec] distributions of detected bottlenecks')
 plt.savefig('pathneck-boxplot')
 plt.show()
 
-
+os.system(f"docker exec {contesting_client} pkill iperf")
+os.system(f"docker exec {client} pkill iperf")
+os.system(f"docker exec {server['name']} pkill iperf")
+os.system(f"docker exec {bottleneck_link_dest['name']} pkill iperf")
