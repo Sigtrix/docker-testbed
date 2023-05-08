@@ -1,6 +1,6 @@
 """
-An experiment where pathneck is used to both detect a bottleneck in a network
-with linear topology and estimate the bandwidth on the bottleneck link.
+An experiment measuring the gap values of hops for a linear network topology
+with a capacity determined bottleneck
 """
 import os
 import numpy as np
@@ -27,10 +27,11 @@ os.system(f"docker exec {client} pkill iperf")
 os.system(f"docker exec {server['name']} pkill iperf")
 os.system(f"docker exec {bottleneck_link_dest['name']} pkill iperf")
 # setup iperf server on server
+
 os.system(f"docker exec {server['name']} iperf -s &")
 os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
 
-# generate background traffic on path from client to server
+# generate background traffic from c2 to r3 (through r2)
 os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
 
 # run pathneck from client c1 to server s1
@@ -53,7 +54,7 @@ for i in range(len(bottlneck_bw_values)):
 	bandwidth_est.append(line[6])
 	os.system(f"docker exec {contesting_client} pkill iperf")
 	time.sleep(2)
-	
+
 # plot bandwidth test results
 bandwidth_est = [float(x) for x in bandwidth_est]
 plt.plot(bottlneck_bw_values, bottlneck_bw_values, c='blue', label = 'Value set')

@@ -11,7 +11,6 @@ nodes = {"c1": ("10.0.1.2", "c1-r1"),
          "r5": ("10.0.3.4", "r4-r5"),
          "r6": ("10.0.4.2", "r6-s1"),
          "s1": ("10.0.4.4", "r6-s1")}
-
 """
 Links Format:
 [(endpoint_name1, ip1, (endpoint_name2, ip2)), (bandwidth[Mbit/s], burst[kb], latency[ms])), ...]
