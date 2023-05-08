@@ -1,17 +1,17 @@
-all: clean setup run test
+all: clean setup run
 
 clean:
-	for node in $$(jq -r '.nodes | keys[]' state.json); do \
+	for node in $$(jq -r '.nodes | keys[]' ./tmp/state.json); do \
         docker rm -f $${node} ; \
     done
 	docker network prune -f
-	echo '{}' > state.json
+	echo '{}' > ./tmp/state.json
 
 setup:
-	python3 setup.py
+	cd src && python3 setup.py
 
 run:
-	python3 events.py
+	cd src && python3 experiment.py
 
 test:
-	docker exec -it c1 traceroute 10.0.4.4
+	python3 $(TESTSCRIPT)
