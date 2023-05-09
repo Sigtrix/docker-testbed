@@ -3,40 +3,42 @@ An experiment measuring the gap values of hops for a linear network topology
 with a capacity determined bottleneck
 """
 import os
+import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+sys.path.append('..')
+from utils.experiment_helpers import iperf_server, iperf_client, pathneck, parse_pathneck_result, capture_traffic
+
+# global variables
 n_iter = 20
 bottleneck_bandwidth = []
 data = {'00': [], '01': [], '02': [], '03': [], '04': [], '05': []}
 
-bottleneck_link_dest = {'name': 'r6', 'ip': '10.0.8.4'}
 server = {'name': 's1', 'ip': '10.0.4.4'}
 contesting_client = 'c2'
 client = 'c1'
+bottleneck_link_dest = {'name': 'r6', 'ip': '10.0.8.4'}
+bottleneck_router = 'r5'
 
 # setup iperf server on bottleneck link destination
-os.system(f"docker exec {server['name']} iperf -s &")
-os.system(f"docker exec {bottleneck_link_dest['name']} iperf -s &")
+iperf_server(server['name'])
+iperf_server(bottleneck_link_dest['name'])
 
-# generate background traffic from c2 to r3 (through r2)
-os.system(f"docker exec {client} iperf -t 0 -c {server['ip']} &")
-os.system(f"docker exec {contesting_client} iperf -t 0 -c {bottleneck_link_dest['ip']} &")
+# generate background traffic
+iperf_client(client, server['ip'])
+iperf_client(contesting_client, bottleneck_link_dest['ip'])
 
+# capture traffic on bottleneck router
+capture_traffic(bottleneck_router, 'eth1', '180', 'traffic-capture')
 
+# run pathneck from client to server
 for i in range(n_iter):
-	result = subprocess.run(['docker', 'exec', client, './pathneck-1.3/pathneck', '-o', server['ip']],
-	                        stdout=subprocess.PIPE)
-	output = result.stdout.decode('utf-8')
-	print(output)
-	for line in output.splitlines():
-		line = line.split()
-		if len(line) == 8:
-			if line[5] == '1':
-				bottleneck = line[0]
-				bottleneck_bw = float(line[6])
-				bottleneck_bandwidth.append(float(line[6]))
-				data[line[0]].append(bottleneck_bw)
+	result = pathneck(client, server['ip'])
+	print(result)
+	bottleneck, bottleneck_bw = parse_pathneck_result(result)
+	bottleneck_bandwidth.append(bottleneck_bw)
+	data[bottleneck].append(bottleneck_bw)
 
 # plot bandwidth test results
 total_data = [data[key] for key in data]
