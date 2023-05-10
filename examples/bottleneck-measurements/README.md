@@ -94,6 +94,10 @@ with a good estimate of the available bandwidth.
 
 ![](../../measurements/bottleneck/load/pathneck-boxplot-linear-cap30.png)
 
+Additionally, the capacity of the contending link was also measured to verify whether there is fair share of the bottleneck link. To do this another [experiment](./load-determined-bottleneck/linear-network/iperf_bw_measurement.py) was conducted where the capacity of the contending link was fixed from 10 to 190 Mbps with a jump of 20Mbps. From the plot below produced by running this experiment, it can be inferred that the bandwidth measured for the contending link rises linearly equalling the capacity value set for the same link and at a certain threshold it stagnates. The threshold is near to 100 Mbps which is half of the capacity of bottleneck link(200 Mbps). The observations match with the expectated outcomes since it is expected that the maximum bandwidth observed for the contending link should be half of the capacity of the bottleneck link as fair sharing takes place between the main path (test path) and the contending path(the one being measured in this experiment).
+
+![](../../measurements/bottleneck/load/iperf-bandwidth-measurements.png)
+
 Overall the system can be expected to find the correct bottleneck
 but in a setting with cross-traffic the estimated bandwidth
 shows higher variance and the threshold to determine a capacity determined
