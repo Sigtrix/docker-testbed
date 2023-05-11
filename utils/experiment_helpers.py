@@ -74,4 +74,4 @@ def parse_pathneck_result(pathneck_result):
 				bottleneck = line[0]
 				bottleneck_bw = float(line[6])
 				return bottleneck, bottleneck_bw
-	return None
+	return None, None
