@@ -70,3 +70,7 @@ clean up resources after the experiment run the following make command:
 ```
 make all
 ```
+### Future Work
+The scalability of the test bed can be enhanced further by using docker swarm.
+Currently, this test bed runs on a single machine and all the docker containers share the same common docker daemon of the system on which the containers are running on. 
+By using features like docker swarm, we can run multiple containers on different machines, where each machine has its own docker daemon. The docker swarm can be used to create an overlay network which connects all the docker containers to this single overlay network and this current testbed implementation can be run on it to make it scalable by defining a large network consisting of many nodes.
