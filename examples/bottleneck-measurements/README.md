@@ -28,6 +28,8 @@ detected bottleneck link.
 
 ![](../../measurements/bottleneck/capacity/pathneck-bandwidth-measurements-surpass-bw.png)
 
+Since the [experiment](./capacity-determined-bottleneck/layered-network/real-world-experiment-bw-limited.py) stores the data in a csv file as well, further analytics can be performed on this data saved by using a separate python script such as [test_analytics](./capacity-determined-bottleneck/layered-network/test_analytics.py).
+
 ## Load Determined Bottleneck
 This directory contains two types of network topologies [linear](../topologies/linear.py)
 and [layered](load-determined-bottleneck/layered-network/real_world-load-determined.py), as well as experiments that test the capabilities of the system
@@ -77,8 +79,8 @@ consistent. The figure below shows the results when each link
 in the network has a capacity of 100 Mbps and there is generated
 traffic from *c1* to *s1*. The correct bottleneck is detected
 but the estimates of the available bandwidth show more variance
-but still are ovearll lower than what would be estimated if there was
-no cross-traffic from *c2* was generated.
+but still overall lower than what would be estimated if there was
+no cross-traffic from *c2* generated.
 
 ![](../../measurements/bottleneck/load/pathneck-boxplot-100-background.png)
 
