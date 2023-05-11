@@ -22,11 +22,9 @@ bottleneck_link_dest = {'name': 'r6', 'ip': '10.0.8.4'}
 bottleneck_router = 'r5'
 
 # setup iperf server on bottleneck link destination
-iperf_server(server['name'])
 iperf_server(bottleneck_link_dest['name'])
 
 # generate background traffic
-iperf_client(client, server['ip'])
 iperf_client(contesting_client, bottleneck_link_dest['ip'])
 
 # capture traffic on bottleneck router
@@ -37,8 +35,9 @@ for i in range(n_iter):
 	result = pathneck(client, server['ip'])
 	print(result)
 	bottleneck, bottleneck_bw = parse_pathneck_result(result)
-	bottleneck_bandwidth.append(bottleneck_bw)
-	data[bottleneck].append(bottleneck_bw)
+	if bottleneck is not None:
+		bottleneck_bandwidth.append(bottleneck_bw)
+		data[bottleneck].append(bottleneck_bw)
 
 # plot bandwidth test results
 total_data = [data[key] for key in data]
